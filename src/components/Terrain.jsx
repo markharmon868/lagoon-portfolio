@@ -15,7 +15,7 @@ export const Terrain = () => {
             </RigidBody>
 
             {/* Add the island as a tri-mesh collider */}
-            <RigidBody type="fixed" colliders="trimesh" position={[0, 0, 0]}>
+            <RigidBody type="fixed" colliders="trimesh" position={[0, 0, 0]} friction={10}>
                 <primitive object={island} scale={[1,1,1]} />
             </RigidBody>
         </>
