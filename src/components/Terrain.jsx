@@ -10,7 +10,7 @@ export const Terrain = () => {
     return (
         <>
             {/* Add the road as a tri-mesh collider */}
-            <RigidBody type="fixed" colliders="trimesh" position={[0, 0, 0]}>
+            <RigidBody type="fixed" colliders="trimesh" position={[0, 0, 0]} friction={10}>
                 <primitive object={road} scale={[1,1,1]} />
             </RigidBody>
 
