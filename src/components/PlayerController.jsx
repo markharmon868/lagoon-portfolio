@@ -13,9 +13,6 @@ import { useEffect } from "react";
 
 
 export const PlayerController = () => {
-    const { scene } = useGLTF("/models/sk8r_animated.glb");
-
-    const road = scene.children[0]; // Assuming the road is the first child
 
     const ypos = 70;
 
@@ -175,4 +172,3 @@ export const PlayerController = () => {
     );
 };
 
-useGLTF.preload("/models/character_v1.glb");
