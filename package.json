@@ -15,13 +15,15 @@
     "leva": "^0.9.35",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "three": "^0.167.1"
+    "three": "^0.167.1",
+    "three-stdlib": "^2.35.2"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "globals": "^15.9.0",
+    "r3f-perf": "^7.2.3",
     "vite": "^5.4.1"
   }
 }
