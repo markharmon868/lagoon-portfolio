@@ -2,7 +2,7 @@ import { Box, Sphere, OrbitControls } from "@react-three/drei";
 import { RigidBody } from "@react-three/rapier";
 import { useGLTF } from "@react-three/drei";
 import { Terrain } from "./Terrain.jsx";
-import { Player } from "./PlayerController.jsx";
+import { PlayerController } from "./PlayerController.jsx";
 
 export const Experience = () => {
   return (
@@ -19,7 +19,7 @@ export const Experience = () => {
         </Sphere> 
       </RigidBody>
 
-      <Player/>
+      <PlayerController/>
 
       <Terrain />
     </>

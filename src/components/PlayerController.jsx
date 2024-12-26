@@ -6,12 +6,14 @@ import { useFrame } from "@react-three/fiber";
 import { useControls } from "leva";
 import { MathUtils } from "three";
 import { degToRad } from "three/src/math/MathUtils";
+import { Player } from "./Player";
+import { useState } from "react";
 
 
-export const Player = () => {
-    const { scene } = useGLTF("/models/character_v1.glb");
+export const PlayerController = () => {
+    const { scene } = useGLTF("/models/sk8r_animated.glb");
 
-    const player = scene.children[0]; // Assuming the road is the first child
+    const road = scene.children[0]; // Assuming the road is the first child
 
     const ypos = 70;
 
@@ -30,6 +32,8 @@ export const Player = () => {
     const rb = useRef();
     const character = useRef();
     const container = useRef();
+
+    const [animation, setAnimation] = useState("idle");
 
     const characterRotationTarget = useRef(0);
     const rotationTarget = useRef(0);
@@ -76,6 +80,11 @@ export const Player = () => {
                 vel.x = Math.sin(rotationTarget.current + characterRotationTarget.current) * speed;
                 vel.z = Math.cos(rotationTarget.current + characterRotationTarget.current) * speed;
 
+                if (speed === RUN_SPEED || speed == WALK_SPEED) {
+                    setAnimation("running");
+                }
+            } else {
+                setAnimation("idle");
             }
             character.current.rotation.y = MathUtils.lerp(
                 character.current.rotation.y,
@@ -112,7 +121,7 @@ export const Player = () => {
                 <group ref={cameraTarget} position-y = {ypos} position-z={1.5} />
                 <group ref={cameraPosition} position={[0, ypos+4, -10]} />
                 <group ref={character}>
-                    <primitive object={player} scale={[2,2,2]} position={[0, ypos-1.85, 0]} />
+                    <Player scale={[2,2,2]} position={[0, ypos-1.85, 0]} animation={animation}/>
                 </group>
             </group>
             <CapsuleCollider args = {[0.45, 1.4]} position={[0, ypos, 0]} /> 
