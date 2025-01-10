@@ -3,6 +3,8 @@ import { RigidBody } from "@react-three/rapier";
 import { useGLTF } from "@react-three/drei";
 import { Terrain } from "./Terrain.jsx";
 import { PlayerController } from "./PlayerController.jsx";
+import { GameController } from "./GameController.jsx";
+import { Docks } from "./Docks.jsx";
 
 
 export const Experience = () => {
@@ -11,9 +13,10 @@ export const Experience = () => {
       {/* Scene setup */}
       <ambientLight intensity={0.9} />
       <directionalLight position={[-10, 10, 0]} intensity={0.4} />
-      <PlayerController/>
+      <GameController/>
 
       <Terrain />
+      <Docks />
     </>
   );
 };

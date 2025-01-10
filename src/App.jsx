@@ -22,7 +22,7 @@ function App() {
       <Perf position="top-left"/>
       <color attach="background" args={["#ececec"]} />
       <Suspense fallback={null}>
-        <Physics debug={false}>
+        <Physics debug={true}>
           <Experience />
         </Physics>
       </Suspense>

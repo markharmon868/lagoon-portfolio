@@ -1,20 +1,16 @@
+import { useRef, useState, useEffect, forwardRef } from "react";
 import { RigidBody, CapsuleCollider } from "@react-three/rapier";
-import { useGLTF, useKeyboardControls } from "@react-three/drei";
-import { useRef } from "react";
-import { Vector3 } from "three";
-import { useFrame } from "@react-three/fiber";
+import { useGLTF, useKeyboardControls, Text } from "@react-three/drei";
+import { Vector3, MathUtils } from "three";
+import { useFrame, createPortal } from "@react-three/fiber";
 import { useControls } from "leva";
-import { MathUtils } from "three";
 import { degToRad } from "three/src/math/MathUtils";
 import { Player } from "./Player";
-import { useState } from "react";
-import { useEffect } from "react";
 
 
+export const PlayerController = forwardRef(({onEnterVehicle, vehicleRef, startPosition}, ref) => {
 
-export const PlayerController = () => {
-
-    const ypos = 70;
+    const ypos = 10;
 
     const { WALK_SPEED, RUN_SPEED, ROTATION_SPEED} = useControls("Character Control", {
         WALK_SPEED: {value: 2.1, min: 0.1, max: 4, step: 0.1},
@@ -45,47 +41,89 @@ export const PlayerController = () => {
     const cameraLookAt = useRef(new Vector3());
 
     const [, get] = useKeyboardControls();
-    const isClickiing = useRef(false);
+    var hasEnteredVehicle = false;
 
+    const [showPopup, setShowPopup] = useState(false); // State for popup visibility
+
+
+
+    // Proximity check state
+    var isNearVehicle = false;
+
+
+    // Proximity check logic
     useEffect(() => {
-        const onMouseDown = (e) => {
-            isClickiing.current = true;
-        }
-        const onMouseUp = (e) => {
-            isClickiing.current = false;
-        }
-        document.addEventListener("mousedown", onMouseDown);
-        document.addEventListener("mouseup", onMouseUp);
-        return () => {
-            document.removeEventListener("mousedown", onMouseDown);
-            document.removeEventListener("mouseup", onMouseUp);
-        }
+        const checkProximity = () => {
+            const playerPosition = new Vector3().copy(rb.current.translation());
+            const vehicleStartPosition = new Vector3(0, 0, -60); // Example vehicle position
+            
+            // console.log(vehicleRef.current)
+            const distanceToStart = playerPosition.distanceTo(vehicleStartPosition);
+            console.log(hasEnteredVehicle);
+            
+            if (!hasEnteredVehicle) {
+                if (distanceToStart < 6) {
+                    isNearVehicle = true;
+                    // console.log("Near vehicle");
+                }   else {
+                    isNearVehicle = false;
+                    // console.log("Not near vehicle");
+                }
+            };
+            if (hasEnteredVehicle) {
+                const vehiclePosition = vehicleRef.current.translation();
+                const distance = playerPosition.distanceTo(vehiclePosition);
+                console.log(distance);
+                if (distance < 6) {
+                    isNearVehicle = true;
+                    console.log("Near vehicle");
+                } else {
+                    isNearVehicle = false;
+                    console.log("Not near vehicle");
+                }
+            };
+            // if (distance < 6 || distanceToStart < 6) {
+            //     isNearVehicle = true;
+            //     console.log("Near vehicle");
+            // } else  if (distance > 6 || distanceToStart > 6) {
+            //     isNearVehicle = false;
+            //     console.log("Not near vehicle");
+            // }
+        };
+
+        const interval = setInterval(checkProximity, 1000); // Check proximity periodically
+        return () => clearInterval(interval);
     }, []);
 
+    // Key press handling for entering/exiting the vehicle
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if ((event.key === "e" || event.key =="E") && onEnterVehicle && isNearVehicle) {
+                console.log("Switching to VehicleController..."); // Debugging log
+                onEnterVehicle();
+                hasEnteredVehicle = true;
+            }
+            if (event.key === "o" || event.key === "O") {
+                setShowPopup((prev) => !prev); // Toggle popup visibility
+            }
+        };
+    
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [onEnterVehicle]);
 
-    useFrame(({ camera, mouse }) => {
 
-        if(rb.current) {
+
+    useFrame(({ camera }) => {
+
+        if (rb.current) {
             const vel = rb.current.linvel();
-            
-            const movement = {
-                x:0,
-                z:0,
-                y: vel.y,
-            }
+            const movement = { x: 0, z: 0, y: vel.y };
 
-            if (get().forward) {
-                movement.z = 1;
-            }
-            if (get().backward) {
-                movement.z = -1;
-            }
-            if (get().left) {
-                movement.x = 1;
-            }
-            if (get().right) {
-                movement.x = -1;
-            }
+            if (get().forward) movement.z = 1;
+            if (get().backward) movement.z = -1;
+            if (get().left) movement.x = 1;
+            if (get().right) movement.x = -1;
             if (get().jump && !isJumping) {
                 movement.y = 5;
                 setIsJumping(true);
@@ -99,14 +137,6 @@ export const PlayerController = () => {
 
             let speed = get().run ? RUN_SPEED : WALK_SPEED;
 
-            if (isClickiing.current) {
-                console.log('clicking', mouse.x, mouse.y);
-                movement.x = -mouse.x;
-                movement.z = mouse.y + 0.5;
-                if (Math.abs(movement.x) > 0.3 || Math.abs(movement.z) > 0.3) {
-                    speed = RUN_SPEED;
-                }
-            }
 
             if (movement.y !== 0 && !isJumping) {
                 vel.y = movement.y;
@@ -158,17 +188,38 @@ export const PlayerController = () => {
     });
 
     return (
+        <>
+            {/* Popup */}
+            {showPopup && (
+                <Text
+                    position={[-2, 10, -37]} // Position relative to player
+                    rotation = {[0, Math.PI, 0]}
+                    fontSize={1}
+                    color="white"
+                    anchorX="center"
+                    anchorY="middle"
+                    maxWidth={10}
+                    outlineWidth={0.1}
+                    outlineColor="black"
+                >
+                    This is a popup. Press "O" to close it.
+                </Text>
+            )}
         
-        <RigidBody colliders={false} lockRotations ref={rb}>
-            <group ref={container}> 
-                <group ref={cameraTarget} position-y = {ypos} position-z={1.5} />
-                <group ref={cameraPosition} position={[0, ypos+8, -15]} />
-                <group ref={character}>
-                    <Player scale={[2,2,2]} position={[0, ypos-1.85, 0]} animation={animation}/>
+            
+            <RigidBody colliders={false} lockRotations ref={rb} 
+                position={startPosition}
+            >
+                <group ref={container} > 
+                    <group ref={cameraTarget} position-y = {ypos} position-z={1.5} />
+                    <group ref={cameraPosition} position={[0, ypos+2, -10]} />
+                    <group ref={character}>
+                        <Player scale={[1,1,1]} position={[0, ypos-1.85, 0]} animation={animation}/>
+                    </group>
                 </group>
-            </group>
-            <CapsuleCollider args = {[0.45, 1.4]} position={[0, ypos, 0]} /> 
-        </RigidBody>
+                <CapsuleCollider args = {[0.55, 0.3]} position={[0, ypos-1, 0]} /> 
+            </RigidBody>
+        </>
     );
-};
+});
 
